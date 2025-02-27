@@ -22,6 +22,25 @@ import numpy as np
                              [ 4  0  3]]
 
 https://stackoverflow.com/questions/2828059/sorting-arrays-in-numpy-by-column
+
+- Ως συνέχεια της ιδέας, μπορούμε να διατηρήσουμε ένα
+  τμήμα των γραμμών του πίνακα άθικτο!
+
+- Π.χ.:
+  b = np.array([[ 5,  2,  9],
+                [ 3,  8,  6],
+                [ 1,  0,  4],
+                [10,  7,  2]])
+
+  fixed_rows  = np.arange(0, 2)
+  sorted_rows = b[2:, 1].argsort()[::-1] + 2
+  b = b[np.append(fixed_rows, sorted_rows)]
+
+- Οπότε:
+  b -> [[ 5  2  9] \\_ ίδια!
+        [ 3  8  6] //
+        [10  7  2]  \\_ sorted!
+        [ 1  0  4]] //
 '''
 
 def gaussianElimination(matrix: np.array):
@@ -35,13 +54,17 @@ def gaussianElimination(matrix: np.array):
     - Calculate how many zeros you have to make
     for the matrix to become upper triangular
 
-    zerosNum = int((rows * (rows - 1)) / 2)
+    # zerosNum = int((rows * (rows - 1)) / 2)
+
+    Τελικά δεν το χρησιμοποιεί, αλλά μου άρεσε!
     '''
     
     startRow = 0
     for i in range(cols - 1):
         # Make the row with the biggest pivot the 1st line!
-        tempMatrix = tempMatrix[np.append(np.arange(0, startRow), tempMatrix[startRow:, i].argsort()[::-1] + startRow)]
+        fixed_rows  = np.arange(0, startRow)
+        sorted_rows = tempMatrix[startRow:, i].argsort()[::-1] + startRow
+        tempMatrix  = tempMatrix[np.append(fixed_rows, sorted_rows)]
 
         pivot = tempMatrix[startRow, i]
         if pivot == 0:
@@ -61,7 +84,8 @@ def main():
                   [1,0,3, 10],
                   [1,2,-1, 5]])
     
-    print(gaussianElimination(a))
+    b = gaussianElimination(a)
+    print(b)
 
     return;
 
