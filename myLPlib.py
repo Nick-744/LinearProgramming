@@ -1,4 +1,3 @@
-import matplotlib as plt
 import numpy as np
 
 '''
@@ -27,10 +26,10 @@ https://stackoverflow.com/questions/2828059/sorting-arrays-in-numpy-by-column
   τμήμα των γραμμών του πίνακα άθικτο!
 
 - Π.χ.:
-  b = np.array([[ 5,  2,  9],
-                [ 3,  8,  6],
-                [ 1,  0,  4],
-                [10,  7,  2]])
+  b = np.array([[ 5, 2, 9],
+                [ 3, 8, 6],
+                [ 1, 0, 4],
+                [10, 7, 2]])
 
   fixed_rows  = np.arange(0, 2)
   sorted_rows = b[2:, 1].argsort()[::-1] + 2
@@ -41,6 +40,24 @@ https://stackoverflow.com/questions/2828059/sorting-arrays-in-numpy-by-column
         [ 3  8  6] //
         [10  7  2]  \\_ sorted!
         [ 1  0  4]] //
+'''
+
+'''
+* Add an extra column to a NumPy array *
+
+- Έστω:
+  a = np.array([[4, 0, 1,  4],
+                [1, 0, 3, 10],
+                [1, 2,-1,  5],
+                [4, 3, 5, 10]])
+
+- Ισχύει:
+  np.c_[ a[:, [2, 1, 0]], a[:, 3] ] -> [[ 1  0  4  4]
+                                        [ 3  0  1 10]
+                                        [-1  2  1  5]
+                                        [ 5  3  4 10]]
+
+https://stackoverflow.com/questions/8486294/how-do-i-add-an-extra-column-to-a-numpy-array
 '''
 
 def gaussianElimination(matrix: np.array):
@@ -82,10 +99,13 @@ def gaussianElimination(matrix: np.array):
 def main():
     a = np.array([[4,0,1, 4],
                   [1,0,3, 10],
-                  [1,2,-1, 5]])
+                  [1,2,-1, 5],
+                  [4,3,5, 10]])
     
     b = gaussianElimination(a)
     print(b)
+    c = gaussianElimination(np.c_[b[:, [2,1,0]], b[:, 3]])
+    print(c)
 
     return;
 
