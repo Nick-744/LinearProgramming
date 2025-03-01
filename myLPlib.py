@@ -125,7 +125,7 @@ def gaussJordanElimination(matrix: np.array) -> np.array:
     if rows == cols:
         augmented_mat_len += 1 # So the following changes are valid!
     
-    upperToLower()
+    upperToLower() # Transform upper to lower triangular
 
     if rows == cols:
         augmented_mat_len = 0
@@ -149,13 +149,14 @@ def gaussJordanElimination(matrix: np.array) -> np.array:
     return tempMatrix;
 
 def main():
-    a = np.array([[4, 1, 2,-3,-16],
-                  [-3,3,-1, 4, 20],
-                  [-1,2, 5, 1, -4],
-                  [5, 4, 3,-1,-10]])
+    ab = np.array([[4, 1, 2,-3,-16],
+                   [-3,3,-1, 4, 20],
+                   [-1,2, 5, 1, -4],
+                   [5, 4, 3,-1,-10]])
     
-    b = gaussJordanElimination(a)
-    print(b)
+    x = gaussJordanElimination(ab)
+    print(x)
+    print(np.allclose(np.dot(ab[:, np.arange(ab.shape[1] - 1)], x[:, -1]), ab[:, -1])) # Check solution!
 
     return;
 
