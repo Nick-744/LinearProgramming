@@ -157,6 +157,7 @@ def main():
     x = gaussJordanElimination(ab)
     print(x)
     print(np.allclose(np.dot(ab[:, np.arange(ab.shape[1] - 1)], x[:, -1]), ab[:, -1])) # Check solution!
+    # https://numpy.org/doc/2.2/reference/generated/numpy.linalg.solve.html
 
     return;
 
