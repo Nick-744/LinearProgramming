@@ -60,9 +60,18 @@ https://stackoverflow.com/questions/2828059/sorting-arrays-in-numpy-by-column
 https://stackoverflow.com/questions/8486294/how-do-i-add-an-extra-column-to-a-numpy-array
 '''
 
-def gaussianElimination(matrix: np.array):
+'''
+- numpy.vstack(tup, *, dtype=None, casting='same_kind')
+  Stack arrays in sequence vertically (row wise)!
+
+https://numpy.org/doc/stable/reference/generated/numpy.vstack.html
+'''
+
+# Python Inner Functions
+# https://www.geeksforgeeks.org/python-inner-functions/
+
+def gaussianElimination(matrix: np.array) -> np.array:
     # Ensure the input data is safe!
-    matrix.flags["WRITEABLE"] = False
     tempMatrix = np.copy(matrix.astype("float64"))
     
     (rows, cols) = tempMatrix.shape
@@ -92,20 +101,61 @@ def gaussianElimination(matrix: np.array):
         for j in range(startRow, rows):
             tempMatrix[j, :] = tempMatrix[j, :] - (tempMatrix[j, i] * tempMatrix[startRow - 1, :])
 
-    matrix.flags["WRITEABLE"] = True
+    return tempMatrix;
+
+def gaussJordanElimination(matrix: np.array) -> np.array:
+    tempMatrix = gaussianElimination(matrix) # Upper triangular
+
+    def upperToLower(): # Inner Function
+        nonlocal tempMatrix
+
+        # Reverse rows:
+        tempMatrix = tempMatrix[::-1]
+
+        # Reverse variables cols:
+        reversed_vars = tempMatrix[:, np.arange((cols - 1) - augmented_mat_len, -1, -1)]
+
+        # Append in reversed_vars the augmented matrix:
+        tempMatrix = np.c_[reversed_vars, tempMatrix[:, np.arange(cols - augmented_mat_len, cols)]]
+
+        return;
+
+    (rows, cols) = tempMatrix.shape
+    augmented_mat_len = max(rows, cols) - min(rows, cols)
+    if rows == cols:
+        augmented_mat_len += 1 # So the following changes are valid!
+    
+    upperToLower()
+
+    if rows == cols:
+        augmented_mat_len = 0
+        rows -= 1 # Cheat in min(rows, cols)! Upper triangular comes at top!
+    
+    # Make sure that the upper triangular is at top!
+    for _ in range(min(rows, cols)):
+        last_row = tempMatrix[-1]
+        first_lines = tempMatrix[np.arange((cols -1 ) - augmented_mat_len)]
+        tempMatrix = np.vstack([last_row, first_lines])
+    
+    # Lower triangular (performed with code for upper triangular)
+    startRow = 0
+    for i in range(cols - 1):
+        startRow += 1
+        for j in range(startRow, rows):
+            tempMatrix[j, :] = tempMatrix[j, :] - (tempMatrix[j, i] * tempMatrix[startRow - 1, :])
+
+    upperToLower()
 
     return tempMatrix;
 
 def main():
-    a = np.array([[4,0,1, 4],
-                  [1,0,3, 10],
-                  [1,2,-1, 5],
-                  [4,3,5, 10]])
+    a = np.array([[4, 1, 2,-3,-16],
+                  [-3,3,-1, 4, 20],
+                  [-1,2, 5, 1, -4],
+                  [5, 4, 3,-1,-10]])
     
-    b = gaussianElimination(a)
+    b = gaussJordanElimination(a)
     print(b)
-    c = gaussianElimination(np.c_[b[:, [2,1,0]], b[:, 3]])
-    print(c)
 
     return;
 
