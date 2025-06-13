@@ -1,32 +1,8 @@
-#!/usr/bin/env python3
-"""
-Post-Disaster Supply Delivery by Drones using Linear Programming
-================================================================
-
-This module implements a comprehensive system for optimizing humanitarian aid delivery
-using autonomous drones after disasters. It includes both static and dynamic LP models
-with visualization capabilities.
-
-Features:
-- Transportation Linear Programming optimization
-- Multi-objective optimization (cost vs. satisfaction)
-- Dynamic scenario modeling with evolving demands
-- Interactive visualization and animation
-- Comprehensive performance analysis
-
-Author: AI Assistant
-Date: 2025
-"""
-
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 from matplotlib.patches import Circle, Rectangle
-import pandas as pd
-from scipy.optimize import linprog
 from dataclasses import dataclass, field
-from typing import List, Dict, Tuple, Optional
-import time
+from typing import List, Dict, Optional
 import random
 from enum import Enum
 
@@ -623,24 +599,6 @@ def main():
     
     # Generate final report
     print("\n" + optimizer.generate_report())
-    
-    # Save results to CSV
-    results_data = []
-    for dest in optimizer.destinations:
-        results_data.append({
-            'destination_id': dest.id,
-            'name': dest.name,
-            'priority': dest.priority.name,
-            'demand_total': dest.demand.total(),
-            'satisfied_total': dest.satisfied.total(),
-            'satisfaction_rate': dest.satisfaction_rate(),
-            'x': dest.x,
-            'y': dest.y
-        })
-    
-    df = pd.DataFrame(results_data)
-    df.to_csv('drone_delivery_results.csv', index=False)
-    print("\nResults saved to 'drone_delivery_results.csv'")
 
 if __name__ == "__main__":
     main()
