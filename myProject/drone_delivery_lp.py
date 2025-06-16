@@ -118,15 +118,18 @@ class DeliveryAssignment:
 
 class DroneDeliveryLPOptimizer:
     """
-    Main class for optimizing drone delivery operations using Linear Programming with PuLP
+    Η κλάση-καρδιά του προγράμματος! Αποτελεί την βάση για την βελτιστοποίηση
+    των αποστολών με drones κάνοντας χρήση ΓΠ μέσω της βιβλιοθήκης PuLP.
     
-    This class formulates the drone delivery problem as a Mixed Integer Linear Program (MILP):
+    Ορίζει το πρόβλημα μεταφοράς ως Μικτό Ακέραιο Γραμμικό Πρόγραμμα (MILP):
     
-    Decision Variables:
-    - x[d,i,j,s] = amount of supply type s delivered by drone d from depot i to destination j
-    - y[d,i,j] = binary variable: 1 if drone d is assigned to route depot i -> destination j, 0 otherwise
+    Μεταβλητές απόφασης:
+    - x[d,i,j,s] = το πλήθος των προμηθειών τύπου s που μεταφέρει ο
+                   δρόνος [τέλεια μετάφραση] d από τον σταθμό i στον προορισμό j
+    - y[d,i,j]   = δυαδική μεταβλητή: 1 αν ο δρόνος d έχει ανατεθεί στην διαδρομή
+                   σταθμός i -> προορισμός j, αλλιώς 0
     
-    Objective:
+    Αντικειμενική συνάρτηση:
     Minimize total weighted cost = Σ (distance[i,j] * priority_weight[j] * y[d,i,j])
     
     Constraints:
