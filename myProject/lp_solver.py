@@ -1,6 +1,6 @@
 # lp_solver.py
 
-from models_PROTOTYPE import Drone, Depot, Destination, Supply, Priority, Assignment
+from models import Drone, Depot, Destination, Supply, Priority, Assignment
 from typing import List
 import pulp
 

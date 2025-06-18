@@ -1,7 +1,7 @@
 # Demo - main.py
 
-from scenario_PROTOTYPE import sample_scenario
-from lp_solver_PROTOTYPE import solve
+from scenario import sample_scenario
+from lp_solver import solve
 from time import time
 
 def main():

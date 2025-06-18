@@ -1,6 +1,6 @@
 # scenario.py
 
-from models_PROTOTYPE import Supply, Priority, Drone, Depot, Destination
+from models import Supply, Priority, Drone, Depot, Destination
 
 def sample_scenario():
     drones = [

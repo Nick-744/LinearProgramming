@@ -1,4 +1,4 @@
-# animation_PROTOTYPE.py
+# animation_2D_PROTOTYPE.py
 
 from __future__ import annotations
 
@@ -9,60 +9,23 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.animation import FuncAnimation
 
-from scenario_PROTOTYPE import sample_scenario
-from lp_solver_PROTOTYPE import solve
-from models_PROTOTYPE import Destination, Drone, Assignment
-
-# ---------------------------------------------------------------------------
-# Internal helpers
-# ---------------------------------------------------------------------------
-
-class _Trajectory:
-    """A fully expanded per-frame path for a single drone."""
-
-    def __init__(self, positions: List[Tuple[float, float]], dest_frame: int | None):
-        self.positions = positions
-        self.dest_frame = dest_frame            # arrival frame at destination
-
-    @property
-    def n_frames(self) -> int:
-        return len(self.positions)
-
-    def pos_at(self, frame: int) -> Tuple[float, float]:
-        idx = min(frame, self.n_frames - 1)
-        return self.positions[idx]
-
-
-def _interpolate(p0: Tuple[float, float], p1: Tuple[float, float], speed: float, dt: float) -> List[Tuple[float, float]]:
-    """Evenly spaced points from *p0* to *p1* given *speed* units per *dt*."""
-    vec = np.asarray(p1) - np.asarray(p0)
-    dist = float(np.hypot(*vec))
-    if dist == 0:
-        return []
-    n_steps = max(1, math.ceil(dist / (speed * dt)))
-    direction = vec / dist
-    return [tuple(np.asarray(p0) + direction * speed * dt * i) for i in range(1, n_steps + 1)]
-
-# ---------------------------------------------------------------------------
-# Main animator
-# ---------------------------------------------------------------------------
+from scenario import sample_scenario
+from lp_solver import solve
+from models import Destination, Drone, Assignment
 
 class DroneAnimator:
     """Lightweight, self-contained visualisation for the prototype model."""
 
     def __init__(self, dt: float = 0.1):
-        # Scenario ----------------------------------------------------------------
-        self.drones: List[Drone]
-        self.depots: List
-        self.destinations: List[Destination]
-        self.drones, self.depots, self.destinations = sample_scenario()
+        # Scenario
+        (self.drones, self.depots, self.destinations) = sample_scenario()
 
-        # Solve once at start-up ---------------------------------------------------
-        self.assignments: List[Assignment] = solve(self.drones, self.depots, self.destinations)
+        self.assignments = solve(self.drones, self.depots, self.destinations)
 
         # Build trajectories -------------------------------------------------------
+        # Δημιουργία διαδρομών/
         self.dt = dt
-        self.trajectories: Dict[int, _Trajectory] = {}
+        self.trajectories = {}
         self._build_trajectories()
         self.max_frames = max(t.n_frames for t in self.trajectories.values())
 
@@ -178,6 +141,32 @@ class DroneAnimator:
         plt.show()
         return anim
 
+# --- Helpers ---
+class _Trajectory:
+    """A fully expanded per-frame path for a single drone."""
+
+    def __init__(self, positions: List[Tuple[float, float]], dest_frame: int | None):
+        self.positions = positions
+        self.dest_frame = dest_frame            # arrival frame at destination
+
+    @property
+    def n_frames(self) -> int:
+        return len(self.positions)
+
+    def pos_at(self, frame: int) -> Tuple[float, float]:
+        idx = min(frame, self.n_frames - 1)
+        return self.positions[idx]
+
+
+def _interpolate(p0: Tuple[float, float], p1: Tuple[float, float], speed: float, dt: float) -> List[Tuple[float, float]]:
+    """Evenly spaced points from *p0* to *p1* given *speed* units per *dt*."""
+    vec = np.asarray(p1) - np.asarray(p0)
+    dist = float(np.hypot(*vec))
+    if dist == 0:
+        return []
+    n_steps = max(1, math.ceil(dist / (speed * dt)))
+    direction = vec / dist
+    return [tuple(np.asarray(p0) + direction * speed * dt * i) for i in range(1, n_steps + 1)]
 
 if __name__ == "__main__":
     DroneAnimator().run()
