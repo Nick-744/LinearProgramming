@@ -1,172 +1,204 @@
-# animation_2D_PROTOTYPE.py
+# animation_2D.py
 
 from __future__ import annotations
 
-import math
-from typing import Dict, List, Tuple
-
-import matplotlib.pyplot as plt
-import numpy as np
 from matplotlib.animation import FuncAnimation
+import matplotlib.pyplot as plt
+from typing import List, Tuple
+import numpy as np
+import math
 
 from scenario import sample_scenario
 from lp_solver import solve
-from models import Destination, Drone, Assignment
 
 class DroneAnimator:
-    """Lightweight, self-contained visualisation for the prototype model."""
+    ''' Ανεξάρτητη κλάση για την οπτικοποίηση της παράδοσης με δρόνους. '''
 
-    def __init__(self, dt: float = 0.1):
-        # Scenario
+    def __init__(self, dt: float = 0.02) -> None:
         (self.drones, self.depots, self.destinations) = sample_scenario()
-
         self.assignments = solve(self.drones, self.depots, self.destinations)
 
-        # Build trajectories -------------------------------------------------------
-        # Δημιουργία διαδρομών/
+        # Δημιουργία διαδρομών για τους δρόνους
         self.dt = dt
         self.trajectories = {}
         self._build_trajectories()
         self.max_frames = max(t.n_frames for t in self.trajectories.values())
 
-        # Matplotlib set-up --------------------------------------------------------
+        # Matplotlib set-up
         self.fig, self.ax = plt.subplots(figsize=(8, 8))
-        self.ax.set_title("Prototype Drone-Delivery Animation")
+        self.ax.set_title('Prototype Drone-Delivery Animation')
         self._setup_static_artists()
-        self.scat_drones = self.ax.scatter([], [], c="grey", edgecolors="k", s=120, zorder=3)
-        self.text_time = self.ax.text(0.98, 0.95, "", transform=self.ax.transAxes,
-                                      fontsize=9, ha="right", va="top")
+        self.scat_drones = self.ax.scatter(
+            [], [], c = 'grey', edgecolors = 'k', s = 120, zorder = 3
+        )
+        self.text_time = self.ax.text(
+            0.98, 0.95, '', transform = self.ax.transAxes, fontsize = 9,
+            ha = 'right', va = 'top'
+        )
 
-        # Track which destinations have turned green
+        # Καταγραφή των προορισμών που έχουν ικανοποιηθεί (χρωματίζονται πράσινοι)
         self._dest_satisfied: List[bool] = [False] * len(self.destinations)
 
-    # ---------------------------------------------------------------------
-    # Trajectory construction
-    # ---------------------------------------------------------------------
+        return;
+
     def _build_trajectories(self) -> None:
         depot_by_id = {d.id: d for d in self.depots}
-        dest_by_id = {d.id: d for d in self.destinations}
-        idle_repeat = 100  # frames for idle drones
+        dest_by_id  = {d.id: d for d in self.destinations}
+        idle_repeat = 100
+
+        assignments_by_drone = {}
+        for a in self.assignments:
+            assignments_by_drone.setdefault(a.drone_id, []).append(a)
 
         for drone in self.drones:
-            # Find assignment, if any
-            assign = next((a for a in self.assignments if a.drone_id == drone.id), None)
-            if assign is None:
-                self.trajectories[drone.id] = _Trajectory([(drone.x, drone.y)] * idle_repeat, None)
-                continue
+            assigns = assignments_by_drone.get(drone.id, [])
+            if not assigns:
+                self.trajectories[drone.id] = _Trajectory(
+                    [(drone.x, drone.y)] * idle_repeat, []
+                )
+                continue;
 
-            depot = depot_by_id[assign.depot_id]
-            dest = dest_by_id[assign.dest_id]
+            pos         = (drone.x, drone.y)
+            frames      = []
+            dest_frames = []
 
-            waypoints = [
-                (drone.x, drone.y),      # home
-                (depot.x, depot.y),      # pick-up
-                (dest.x, dest.y),        # delivery
-                (depot.x, depot.y),      # return
-            ]
+            for a in assigns:
+                depot = depot_by_id[a.depot_id]
+                dest  = dest_by_id[a.dest_id]
 
-            frames: List[Tuple[float, float]] = []
-            dest_frame: int | None = None
-            for idx, (p0, p1) in enumerate(zip(waypoints, waypoints[1:])):
-                segment = _interpolate(p0, p1, drone.speed, self.dt)
-                if idx == 1:  # arrival into destination is after segment 1
-                    dest_frame = len(frames) + len(segment) - 1
-                frames.extend(segment)
-            frames.append(waypoints[-1])
-            self.trajectories[drone.id] = _Trajectory(frames, dest_frame)
+                # Αρχική θέση του δρόνου -> Σημείο εφοδιασμού
+                frames += _interpolate(pos, (depot.x, depot.y), drone.speed, self.dt)
+                pos     = (depot.x, depot.y)
 
-    # ---------------------------------------------------------------------
-    # Static plot elements
-    # ---------------------------------------------------------------------
-    def _setup_static_artists(self):
-        # Axis limits -----------------------------------------------------------
-        xs = [d.x for d in self.depots + self.destinations]
-        ys = [d.y for d in self.depots + self.destinations]
+                # Σημείο εφοδιασμού -> Σημείο ανάγκης
+                seg        = _interpolate(pos, (dest.x, dest.y), drone.speed, self.dt)
+                dest_frame = len(frames) + len(seg) - 1
+                dest_frames.append((a.dest_id, dest_frame))
+                frames += seg
+                pos     = (dest.x, dest.y)
+
+                # Σημείο ανάγκης -> Σημείο εφοδιασμού
+                frames += _interpolate(pos, (depot.x, depot.y), drone.speed, self.dt)
+                pos     = (depot.x, depot.y)
+
+            frames.append(pos)
+            self.trajectories[drone.id] = _Trajectory(frames, dest_frames)
+        
+        return;
+
+    def _setup_static_artists(self) -> None:
+        ''' Ζωγραφική των στατικών στοιχείων της σκηνής. '''
+        
+        # Ρυθμίσεις για τους άξονες
+        xs     = [d.x for d in self.depots + self.destinations]
+        ys     = [d.y for d in self.depots + self.destinations]
         margin = 10
         self.ax.set_xlim(min(xs) - margin, max(xs) + margin)
         self.ax.set_ylim(min(ys) - margin, max(ys) + margin)
-        self.ax.set_aspect("equal", adjustable="box")
-        self.ax.grid(alpha=0.3)
+        self.ax.set_aspect('equal', adjustable='box')
+        self.ax.grid(alpha = 0.3)
 
-        # Depots ----------------------------------------------------------------
-        self.ax.scatter([d.x for d in self.depots], [d.y for d in self.depots],
-                        marker="s", s=150, c="tab:blue", edgecolors="k", label="Depots")
+        # Depots
+        self.ax.scatter(
+            [d.x for d in self.depots], [d.y for d in self.depots],
+            marker = 's', s = 150, c = 'tab:blue',
+            edgecolors = 'k', label = 'Depots'
+        )
 
-        # Destinations (all red to start) ---------------------------------------
-        dest_colors_init = ["red"] * len(self.destinations)
-        self._dest_scatter = self.ax.scatter([d.x for d in self.destinations],
-                                             [d.y for d in self.destinations],
-                                             marker="X", s=120, c=dest_colors_init,
-                                             edgecolors="k", label="Destinations")
-        self.ax.legend(loc="upper left")
+        # Destinations X [αρχικά όλα κόκκινα]
+        dest_colors_init = ['red'] * len(self.destinations)
+        self._dest_scatter = self.ax.scatter(
+            [d.x for d in self.destinations],
+            [d.y for d in self.destinations],
+            marker = 'X', s = 120, c = dest_colors_init,
+            edgecolors = 'k', label = 'Destinations'
+        )
+        self.ax.legend(loc = 'upper left')
 
-    # ---------------------------------------------------------------------
+        return;
+
     # Animation callbacks
-    # ---------------------------------------------------------------------
-    def _init_anim(self):
+    def _init_anim(self) -> Tuple:
         self.scat_drones.set_offsets(np.empty((0, 2)))
-        self.text_time.set_text("")
-        return self.scat_drones, self.text_time, self._dest_scatter
+        self.text_time.set_text('')
 
-    def _update_anim(self, frame: int):
-        # Drone positions -------------------------------------------------------
+        return (self.scat_drones, self.text_time, self._dest_scatter);
+
+    def _update_anim(self, frame: int) -> Tuple:
+        ''' Ενημέρωση της οπτικοποίησης για το τρέχον frame. '''
+        # Οι θέσεις των δρόνων
         positions = [self.trajectories[d.id].pos_at(frame) for d in self.drones]
         self.scat_drones.set_offsets(positions)
 
-        # Destination-colour updates -------------------------------------------
+        # Destination χρώματα
         dest_colors = self._dest_scatter.get_facecolors()
-        n_dest = len(self.destinations)
-        if dest_colors.shape[0] < n_dest:  # Happens when matplotlib collapsed colours
+        n_dest      = len(self.destinations)
+        if dest_colors.shape[0] < n_dest: # Happens when matplotlib collapsed colours!
             dest_colors = np.tile(dest_colors, (n_dest, 1))
         for dest_idx, dest in enumerate(self.destinations):
             assign = next((a for a in self.assignments if a.dest_id == dest.id), None)
             if assign is None:
-                continue
+                continue;
             traj = self.trajectories[assign.drone_id]
-            if traj.dest_frame is not None and frame >= traj.dest_frame and not self._dest_satisfied[dest_idx]:
-                dest_colors[dest_idx, :3] = (0.0, 0.6, 0.0)  # turn green
-                self._dest_satisfied[dest_idx] = True
+            for dest_id, f in traj.dest_frames:
+                dest_idx = dest_id
+                if frame >= f and not self._dest_satisfied[dest_idx]:
+                    dest_colors[dest_idx, :3] = (0.0, 0.6, 0.0)
+                    self._dest_satisfied[dest_idx] = True
+
         self._dest_scatter.set_facecolors(dest_colors)
 
-        # Clock -----------------------------------------------------------------
-        self.text_time.set_text(f"Frame: {frame}/{self.max_frames - 1}")
-        return self.scat_drones, self.text_time, self._dest_scatter
+        # Clock - Frame
+        self.text_time.set_text(f'Frame: {frame}/{self.max_frames - 1}')
 
-    # ---------------------------------------------------------------------
-    # Public API
-    # ---------------------------------------------------------------------
-    def run(self):
-        anim = FuncAnimation(self.fig, self._update_anim, frames=self.max_frames,
-                             init_func=self._init_anim, interval=50, blit=True, repeat=False)
+        return (self.scat_drones, self.text_time, self._dest_scatter);
+
+    def run(self) -> FuncAnimation:
+        ''' Η βασική μέθοδος για την εκτέλεση της οπτικοποίησης. '''
+        anim = FuncAnimation(
+            self.fig, self._update_anim, frames = self.max_frames,
+            init_func = self._init_anim, interval = 50, blit = True, repeat = False
+        )
         plt.show()
-        return anim
+
+        return anim;
 
 # --- Helpers ---
 class _Trajectory:
-    """A fully expanded per-frame path for a single drone."""
+    ''' Βοηθητική κλάση για την αποθήκευση της/των διαδρομής/ών ενός δρόνου. '''
 
-    def __init__(self, positions: List[Tuple[float, float]], dest_frame: int | None):
-        self.positions = positions
-        self.dest_frame = dest_frame            # arrival frame at destination
+    def __init__(self,
+                 positions:   List[Tuple[float, float]],
+                 dest_frames: List[Tuple[int, int]]) -> None:
+        self.positions   = positions
+        self.dest_frames = dest_frames # Λίστα από (dest_id, arrival_frame)
+
+        return;
 
     @property
     def n_frames(self) -> int:
-        return len(self.positions)
+        return len(self.positions);
 
     def pos_at(self, frame: int) -> Tuple[float, float]:
         idx = min(frame, self.n_frames - 1)
-        return self.positions[idx]
 
+        return self.positions[idx];
 
-def _interpolate(p0: Tuple[float, float], p1: Tuple[float, float], speed: float, dt: float) -> List[Tuple[float, float]]:
-    """Evenly spaced points from *p0* to *p1* given *speed* units per *dt*."""
-    vec = np.asarray(p1) - np.asarray(p0)
+def _interpolate(
+    p0: Tuple[float, float], p1: Tuple[float, float], speed: float, dt: float
+) -> List[Tuple[float, float]]:
+    ''' Evenly spaced points από το p0 στο p1 με δεδομένο speed ανά dt. '''
+    vec  = np.asarray(p1) - np.asarray(p0)
     dist = float(np.hypot(*vec))
     if dist == 0:
-        return []
-    n_steps = max(1, math.ceil(dist / (speed * dt)))
-    direction = vec / dist
-    return [tuple(np.asarray(p0) + direction * speed * dt * i) for i in range(1, n_steps + 1)]
+        return [];
 
-if __name__ == "__main__":
+    n_steps   = max(1, math.ceil(dist / (speed * dt)))
+    direction = vec / dist
+
+    return [
+        tuple(np.asarray(p0) + direction * speed * dt * i) for i in range(1, n_steps + 1)
+    ];
+
+if __name__ == '__main__':
     DroneAnimator().run()

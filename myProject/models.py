@@ -59,6 +59,13 @@ class Depot(Location):
     ''' Κλάση σημείου εφοδιασμού - κληρονομεί από Location '''
     supply: Supply = field(default_factory = Supply)
 
+    def __str__(self) -> str:
+        temp = self.supply.to_dict()
+        return (
+            f'Αποθήκη {self.name:<10} ({self.id}) - '
+            f'Προμήθεια: {temp["food"]:>3} τ, {temp["water"]:>3} ν, {temp["medicine"]:>3} φ'
+        );
+
 @dataclass
 class Destination(Location):
     ''' Κλάση σημείου ανάγκης - κληρονομεί από Location '''

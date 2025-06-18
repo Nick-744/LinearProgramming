@@ -22,17 +22,22 @@ def build_model(drones: List[Drone],
 
     # Δημιουργία τριπλέτων (drone_id, depot_id, destination_id) ΜΟΝΟ αν ο δρόνος
     # μπορεί να φτάσει στον προορισμό και να επιστρέψει [βάσει εμβέλειας]!
-    routes = [(d.id, i.id, j.id)
-              for d in drones for i in depots for j in dests
-              if d.can_reach(i, j)]
+    routes = [
+        (d.id, i.id, j.id) for d in drones for i in depots for j in dests 
+        if d.can_reach(i, j)
+    ]
     # Δυαδική ανάθεση αποστολής σε δρόνο - Μεταβλητή y
     y = {r: pulp.LpVariable(f'y_{r[0]}_{r[1]}_{r[2]}', cat = 'Binary') for r in routes}
     # Ποσότητα προμηθειών που μεταφέρεται βάση συγκεκριμένης αποστολής - Μεταβλητή x
-    x = {(d, i, j, s): pulp.LpVariable(f'x_{s}_{d}_{i}_{j}', lowBound = 0)
-         for (d, i, j) in routes for s in supply_types}
+    x = {
+        (d, i, j, s): pulp.LpVariable(f'x_{s}_{d}_{i}_{j}', lowBound = 0)
+        for (d, i, j) in routes for s in supply_types
+    }
     # Ποσότητα προμηθειών που δεν καλύπτεται από τις αποστολές - Slack Var unmet
-    unmet = {(j.id, s): pulp.LpVariable(f'unmet_{s}_{j.id}', lowBound = 0)
-             for j in dests for s in supply_types}
+    unmet = {
+        (j.id, s): pulp.LpVariable(f'unmet_{s}_{j.id}', lowBound = 0)
+        for j in dests for s in supply_types
+    }
 
     # --- Αντικειμενική συνάρτηση ---
     ''' -> Ο στόχος μας:
@@ -43,26 +48,32 @@ def build_model(drones: List[Drone],
             depots[i].dist(dests[j]) * priority_w[dests[j].priority] * y[d, i, j]
             for (d, i, j) in routes
         ) +
-        pulp.lpSum(UNMET_PENALTY * priority_w[j.priority] * unmet[j.id, s]
-                    for j in dests for s in supply_types)
+        pulp.lpSum(
+            UNMET_PENALTY * priority_w[j.priority] * unmet[j.id, s]
+            for j in dests for s in supply_types
+        )
     )
 
     # --- Οι περιορισμοί ---
-    # Για κάθε δρόνο => 1 αποστολή MAX
-    for d in drones:
-        model += pulp.lpSum(y[r] for r in routes if r[0] == d.id) <= 1
 
-    # Χωρητικότητα δρόνου
-    for (d, i, j) in routes:
-        model += (pulp.lpSum(x[d, i, j, s] for s in supply_types) <= \
-                  drones[d].capacity * y[d, i, j])
+    # Χωρητικότητα δρόνου - περιορίζουμε το συνολικό
+    # φορτίο ανά δρόνο [λόγω πολλαπλών αποστολών]!
+    for d in drones:
+        model += (
+            pulp.lpSum(
+                x[d.id, i, j, s] for (drone_id, i, j) in routes if drone_id == d.id
+                for s in supply_types
+            ) <= d.capacity
+        )
 
     # Διαθέσιμη προμήθεια στα σημεία εφοδιασμού
     for i in depots:
         for s in supply_types:
-            model += (pulp.lpSum(x[d, i.id, j, s]
-                                for (d, dep, j) in routes if dep == i.id
-                      ) <= getattr(i.supply, s))
+            model += (
+                pulp.lpSum(
+                    x[d, i.id, j, s] for (d, dep, j) in routes if dep == i.id
+                ) <= getattr(i.supply, s)
+            )
 
     # Ισορροπία ζήτησης σε κάθε σημείο ανάγκης
     for j in dests:
