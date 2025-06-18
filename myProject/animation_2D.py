@@ -7,16 +7,21 @@ import matplotlib.pyplot as plt
 from typing import List, Tuple
 import numpy as np
 import math
+import os
 
 from scenario import sample_scenario
 from lp_solver import solve
 
+base_dir = os.path.dirname(__file__)
+
 class DroneAnimator:
     ''' Ανεξάρτητη κλάση για την οπτικοποίηση της παράδοσης με δρόνους. '''
 
-    def __init__(self, dt: float = 0.02) -> None:
+    def __init__(self, map_path: str, dt: float = 0.02) -> None:
         (self.drones, self.depots, self.destinations) = sample_scenario()
         self.assignments = solve(self.drones, self.depots, self.destinations)
+
+        self.map_path = map_path
 
         # Δημιουργία διαδρομών για τους δρόνους
         self.dt = dt
@@ -115,6 +120,17 @@ class DroneAnimator:
         )
         self.ax.legend(loc = 'upper left')
 
+        # Βάλε τον χάρτη πόλης ως φόντο
+        bg_img = plt.imread(self.map_path)
+        self.ax.imshow(
+            bg_img,
+            extent = [
+                min(xs) - margin, max(xs) + margin, min(ys) - margin, max(ys) + margin
+            ],
+            origin = 'upper',
+            zorder = 0 # Βάλε το χάρτη πίσω από όλα τα άλλα στοιχεία!
+        )
+
         return;
 
     # Animation callbacks
@@ -201,4 +217,6 @@ def _interpolate(
     ];
 
 if __name__ == '__main__':
-    DroneAnimator().run()
+    DroneAnimator(
+        map_path = os.path.join(base_dir, 'maps', 'map_background.png')
+    ).run()
