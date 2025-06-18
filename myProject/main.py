@@ -16,11 +16,10 @@ def main():
         dest_name = dests[a.dest_id].name
         cargo     = a.supply.to_dict()
         print(
-            f'Δρόνος {a.drone_id} -> {dest_name:<10} | Απόσταση: {a.distance:5.1f}',
+            f'Δρόνος {a.drone_id} -> {dest_name:<10} | Απόσταση: {a.distance:5.1f} '
             f"| Φορτίο: {cargo['food']:>3} τρόφιμα, {cargo['water']:>3} νερό, "
             f"{cargo['medicine']:>3} φάρμακα"
         )
-
 
     print('\nΠοσοστά κάλυψης προμηθειών ανά προορισμό:')
     for d in dests:

@@ -46,6 +46,19 @@ class DroneAnimator:
 
         return;
 
+    def __str__(self) -> str:
+        temp_string = ''
+        for a in self.assignments:
+            dest_name    = self.destinations[a.dest_id].name
+            cargo        = a.supply.to_dict()
+            temp_string += (
+                f'Δρόνος {a.drone_id} -> {dest_name:<10} | Απόσταση: {a.distance:5.1f}'
+                f"| Φορτίο: {cargo['food']:>3} τρόφιμα, {cargo['water']:>3} νερό, "
+                f"{cargo['medicine']:>3} φάρμακα\n"
+            )
+
+        return temp_string;
+
     def _build_trajectories(self) -> None:
         depot_by_id = {d.id: d for d in self.depots}
         dest_by_id  = {d.id: d for d in self.destinations}
@@ -216,7 +229,15 @@ def _interpolate(
         tuple(np.asarray(p0) + direction * speed * dt * i) for i in range(1, n_steps + 1)
     ];
 
-if __name__ == '__main__':
-    DroneAnimator(
+def main():
+    temp = DroneAnimator(
         map_path = os.path.join(base_dir, 'maps', 'map_background.png')
-    ).run()
+    )
+    print('\n-> Λύση σεναρίου:')
+    print(temp)
+    temp.run()
+
+    return;
+
+if __name__ == '__main__':
+    main()
