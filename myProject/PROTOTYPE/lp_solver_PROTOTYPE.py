@@ -6,7 +6,11 @@ import pulp
 
 # Global Μεταβλητές
 supply_types  = ['food', 'water', 'medicine']
-priority_w    = {Priority.HIGH: 0.5, Priority.MEDIUM: 1., Priority.LOW: 1.5}
+
+# Συντελεστής βαρύτητας ανά προτεραιότητα – ΜΕΓΑΛΥΤΕΡΟ νούμερο = ΥΨΗΛΟΤΕΡΗ προτεραιότητα.
+# Δεν έχει καμία σχέση με τα .value του Enum (HIGH=1, MEDIUM=2, LOW=3).
+priority_w    = {Priority.HIGH: 3., Priority.MEDIUM: 2., Priority.LOW: 1.}
+
 BIG_M         = 10_000
 UNMET_PENALTY = 1_000
 
@@ -79,7 +83,7 @@ def build_model(drones: List[Drone],
 
 def solve(drones: List[Drone],
           depots: List[Depot],
-          dests: List[Destination]) -> List[Assignment]:
+          dests:  List[Destination]) -> List[Assignment]:
     ''' Λύση του προβλήματος με χρήση του Pulp '''
     (model, y, x, _) = build_model(drones, depots, dests)
 

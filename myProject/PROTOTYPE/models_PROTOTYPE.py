@@ -70,6 +70,14 @@ class Destination(Location):
         tot = self.demand.total()
         return 1 if tot == 0 else self.satisfied.total() / tot;
 
+    def __str__(self) -> str:
+        temp = self.demand.to_dict()
+        return (
+            f'Προορισμός {self.name:<10} ({self.id}) - '
+            f'Ανάγκη: {temp["food"]:>3} τ, {temp["water"]:>3} ν, {temp["medicine"]:>3} φ - '
+            f'Προτεραιότητα: {self.priority.name}'
+        );
+
 @dataclass
 class Drone:
     ''' Κλάση δρόνος - αναπαράσταση του αποστολέα '''
@@ -83,6 +91,13 @@ class Drone:
 
     def can_reach(self, depot: Depot, dest: Destination) -> bool:
         return depot.dist(dest) * 2 <= self.range;
+
+    def __str__(self) -> str:
+        return (
+            f'Δρόνος {self.id:>2} - Θέση: ({self.x:>5.1f}, {self.y:>5.1f}) - '
+            f'Χωρητικότητα: {self.capacity:>3} - Εμβέλεια: {self.range:>5.1f} - '
+            f'Ταχύτητα: {self.speed:>3} - Κατάσταση: {self.status.value}'
+        );
 
 @dataclass
 class Assignment:
