@@ -80,7 +80,7 @@ class Destination(Location):
     def __str__(self) -> str:
         temp = self.demand.to_dict()
         return (
-            f'Προορισμός {self.name:<10} ({self.id}) - '
+            f'Προορισμός {self.name:<12} ({self.id}) - '
             f'Ανάγκη: {temp["food"]:>3} τ, {temp["water"]:>3} ν, {temp["medicine"]:>3} φ - '
             f'Προτεραιότητα: {self.priority.name}'
         );

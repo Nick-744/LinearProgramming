@@ -5,11 +5,13 @@ from __future__ import annotations
 from matplotlib.animation import FuncAnimation
 import matplotlib.pyplot as plt
 from typing import List, Tuple
+from time import time
 import numpy as np
 import math
 import os
 
-from scenario import sample_scenario
+from models import Drone, Depot, Destination
+from scenario import sample_scenario, big_city_scenario
 from lp_solver import solve
 
 base_dir = os.path.dirname(__file__)
@@ -17,9 +19,15 @@ base_dir = os.path.dirname(__file__)
 class DroneAnimator:
     ''' Ανεξάρτητη κλάση για την οπτικοποίηση της παράδοσης με δρόνους. '''
 
-    def __init__(self, map_path: str, dt: float = 0.02) -> None:
-        (self.drones, self.depots, self.destinations) = sample_scenario()
+    def __init__(self,
+                 scenario: tuple[list[Drone], list[Depot], list[Destination]],
+                 map_path: str   = None,
+                 dt:       float = 0.02) -> None:
+        (self.drones, self.depots, self.destinations) = scenario
+
+        start = time()
         self.assignments = solve(self.drones, self.depots, self.destinations)
+        self.solution_time = time() - start # Χρόνος επίλυσης
 
         self.map_path = map_path
 
@@ -47,17 +55,27 @@ class DroneAnimator:
         return;
 
     def __str__(self) -> str:
-        temp_string = ''
+        temp_string = '-> Λύση σεναρίου:\n'
         for a in self.assignments:
             dest_name    = self.destinations[a.dest_id].name
             cargo        = a.supply.to_dict()
             temp_string += (
-                f'Δρόνος {a.drone_id} -> {dest_name:<10} | Απόσταση: {a.distance:5.1f}'
+                f'Δρόνος {a.drone_id} -> {dest_name:<12} | Απόσταση: {a.distance:5.1f}'
                 f"| Φορτίο: {cargo['food']:>3} τρόφιμα, {cargo['water']:>3} νερό, "
                 f"{cargo['medicine']:>3} φάρμακα\n"
             )
+        temp_string += f'Χρόνος επίλυσης: {self.solution_time}'
 
         return temp_string;
+
+    def print_satisfaction_rates(self) -> None:
+        ''' Εκτύπωση ποσοστών κάλυψης προμηθειών ανά προορισμό. '''
+
+        print('\nΠοσοστά κάλυψης προμηθειών ανά προορισμό:')
+        for d in self.destinations:
+            print(f'  {d.name:<12}: {d.sat_rate()*100:.1f}%')
+        
+        return;
 
     def _build_trajectories(self) -> None:
         depot_by_id = {d.id: d for d in self.depots}
@@ -134,15 +152,16 @@ class DroneAnimator:
         self.ax.legend(loc = 'upper left')
 
         # Βάλε τον χάρτη πόλης ως φόντο
-        bg_img = plt.imread(self.map_path)
-        self.ax.imshow(
-            bg_img,
-            extent = [
-                min(xs) - margin, max(xs) + margin, min(ys) - margin, max(ys) + margin
-            ],
-            origin = 'upper',
-            zorder = 0 # Βάλε το χάρτη πίσω από όλα τα άλλα στοιχεία!
-        )
+        if (self.map_path is not None) and (os.path.exists(self.map_path)):
+            bg_img = plt.imread(self.map_path)
+            self.ax.imshow(
+                bg_img,
+                extent = [
+                    min(xs) - margin, max(xs) + margin, min(ys) - margin, max(ys) + margin
+                ],
+                origin = 'lower',
+                zorder = 0 # Βάλε το χάρτη πίσω από όλα τα άλλα στοιχεία!
+            )
 
         return;
 
@@ -230,11 +249,17 @@ def _interpolate(
     ];
 
 def main():
+    my_scenario = big_city_scenario()
+    
     temp = DroneAnimator(
+        scenario = my_scenario,
         map_path = os.path.join(base_dir, 'maps', 'map_background.png')
     )
-    print('\n-> Λύση σεναρίου:')
-    print(temp)
+
+    # Λύση και στατιστικά
+    print(f'\n{temp}')
+    temp.print_satisfaction_rates()
+    
     temp.run()
 
     return;
