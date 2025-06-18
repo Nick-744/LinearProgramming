@@ -9,13 +9,17 @@ import pulp
 
 # Global Μεταβλητές
 supply_types        = ['food', 'water', 'medicine']
-priority_w          = {Priority.HIGH: 0.5, Priority.MEDIUM: 1., Priority.LOW: 1.5}
+
+# Συντελεστής βαρύτητας ανά προτεραιότητα – ΜΕΓΑΛΥΤΕΡΟ νούμερο = ΥΨΗΛΟΤΕΡΗ προτεραιότητα.
+# Δεν έχει καμία σχέση με τα .value του Enum (HIGH=1, MEDIUM=2, LOW=3).
+priority_w          = {Priority.HIGH: 3., Priority.MEDIUM: 2., Priority.LOW: 1.}
+
 BIG_M               = 10_000
 UNMET_PENALTY       = 1_000
 MAX_TRIPS_PER_DRONE = 3    # Μέγιστες αποστολές ανά δρόνο
 MAX_MISSION_TIME    = 480. # 8 ώρες αποστολής
 
-# CORE MODEL: Βασικό πρόβλημα μεταφοράς - copy/paste PROTOTYPE
+# CORE MODEL: Βασικό πρόβλημα μεταφοράς - copy/paste PROTOTYPE [με μικρές αλλαγές]
 # =========================================================================================
 def build_model(drones: List[Drone],
                 depots: List[Depot],

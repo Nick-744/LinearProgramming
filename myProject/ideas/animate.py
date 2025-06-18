@@ -1,19 +1,3 @@
-"""enhanced_animate.py
-=====================
-Enhanced dynamic animation for the drone delivery solver with real-time solving.
-
-Features:
-- Real-time visualization of drone movements and solving process
-- Live metrics display and progress tracking
-- Interactive controls (play/pause, speed adjustment)
-- Multi-trip visualization with battery management
-- Dynamic scenario updates with disaster states
-- Performance metrics and efficiency tracking
-
-Run with:
-    python enhanced_animate.py
-"""
-
 from __future__ import annotations
 
 import numpy as np
@@ -203,7 +187,6 @@ class EnhancedDroneAnimation:
                     
                     # Update scenario state
                     self.update_scenario_state(step)
-                    time.sleep(0.5)  # Simulate solving time
                     
                 except Exception as e:
                     print(f"Solving error at step {step}: {e}")
