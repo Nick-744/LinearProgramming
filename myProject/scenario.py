@@ -26,34 +26,34 @@ def sample_scenario():
 
 def big_city_scenario():
     drones = [
-        Drone(0, 33.6, 48.6, 120, 300, 60),
-        Drone(1, 96.7, 42.4, 100, 280, 55),
-        Drone(2, 33.6, 48.6, 150, 350, 50)
+        Drone(0,  40.0, 23.0, 120, 300, 60),
+        Drone(1, 115.0, 17.0, 100, 280, 55),
+        Drone(2,  40.0, 23.0, 150, 350, 50)
     ]
 
     depots = [
-        Depot(0, 33.6, 48.6, 'Depot #1', Supply(120, 100, 80)),
-        Depot(1, 96.1, 42.4, 'Depot #2', Supply(100,  90, 70))
+        Depot(0,  40.0, 23.0, 'Depot #1', Supply(120, 100, 80)),
+        Depot(1, 115.0, 17.0, 'Depot #2', Supply(100,  90, 70))
     ]
 
     dests = [
         Destination(
-            0,   9.5, 26.5,     'Stadium', Supply(40, 30, 10), priority=Priority.MEDIUM
+            0,   9.5,  2.0,     'Stadium', Supply(40, 30, 10), priority = Priority.MEDIUM
         ),
         Destination(
-            1,  18.6, -6.6,      'School', Supply(30, 20, 10), priority=Priority.HIGH
+            1,  31.0, -20.5,      'School', Supply(30, 20, 10), priority = Priority.HIGH
         ),
         Destination(
-            2,  -0.6,   70,      'Clinic', Supply(25, 15, 15), priority=Priority.HIGH
+            2,  -1.8,  45.0,      'Clinic', Supply(25, 15, 15), priority = Priority.HIGH
         ),
         Destination(
-            3,  72.5, 66.8, 'Hospital #1', Supply(50, 40, 25), priority=Priority.HIGH
+            3,  87.0,  40.0, 'Hospital #1', Supply(50, 40, 25), priority = Priority.HIGH
         ),
         Destination(
-            4, 102.5, 68.9,    'Resident', Supply(60, 50, 30), priority=Priority.LOW
+            4, 120.0,  51.0,    'Resident', Supply(60, 50, 30), priority = Priority.LOW
         ),
         Destination(
-            5,  94.1, 14.6, 'Hospital #2', Supply(45, 35, 20), priority=Priority.MEDIUM
+            5,  93.0, -14.5, 'Hospital #2', Supply(45, 35, 20), priority = Priority.MEDIUM
         )
     ]
 
