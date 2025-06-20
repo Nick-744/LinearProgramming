@@ -500,6 +500,7 @@ class _Trajectory:
         return self.positions[idx];
 
 
+
 def _interpolate(
     p0: Tuple[float, float], p1: Tuple[float, float], speed: float, dt: float
 ) -> List[Tuple[float, float]]:
@@ -520,6 +521,7 @@ def _interpolate(
     return [
         tuple(np.array(p0) + direction * step_size * i) for i in range(1, n_steps + 1)
     ];
+
 
 
 def main():
