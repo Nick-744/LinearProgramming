@@ -70,7 +70,7 @@ def silent_hill_scenario():
 
     depots = [
         Depot(0, 68, -78, 'Depot - Obs. Deck', Supply(100, 120, 80)),
-        Depot(1, 83, -20, 'Depot',             Supply(50, 30, 20))
+        Depot(1, 83, -20, 'Depot - Old SH   ',    Supply( 50,  30, 20))
     ]
 
     dests = [

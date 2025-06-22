@@ -480,6 +480,87 @@ class DroneAnimator:
         
         return anim;
 
+    def draw_final_routes(self) -> None:
+        ''' Επανασχεδίαση των διαδρομών των δρόνων μετά την ολοκλήρωση του animation. '''
+        if not self.assignments:
+            print('Δεν υπάρχουν αναθέσεις να σχεδιαστούν!')
+            return;
+        
+        # Δημιουργία νέου figure για τις διαδρομές
+        self._setup_figure()
+        self._setup_static_elements()
+        
+        # Για γρήγορη πρόσβαση στα depots και destinations
+        depot_by_id = {d.id: d for d in self.depots}
+        dest_by_id  = {d.id: d for d in self.destinations}
+        
+        # Κάποια χρωματάκια για τις διαδρομές
+        colors = [
+            'cyan', 'yellow', 'lime', 'orange', 'pink', 'lightblue', 'red', 'green'
+        ]
+        
+        # Oμαδοποίηση αναθέσεων ανά δρόνο
+        drone_routes = {}
+        for assignment in self.assignments:
+            if assignment.drone_id not in drone_routes:
+                drone_routes[assignment.drone_id] = []
+            drone_routes[assignment.drone_id].append(assignment)
+        
+        # Σχεδίαση διαδρομών για κάθε δρόνο
+        for drone_id, assignments in drone_routes.items():
+            drone = next(d for d in self.drones if d.id == drone_id)
+            color = colors[drone_id % len(colors)]
+            
+            # Δημιουργία ολοκληρωμένης διαδρομής:
+            # σημείο εφοδιασμού -> σημείο ανάγκης -> πίσω στο σημείο εφοδιασμού
+            (route_x, route_y) = ([drone.x], [drone.y])
+            for assignment in assignments:
+                depot = depot_by_id[assignment.depot_id]
+                dest  = dest_by_id[assignment.dest_id]
+                
+                # Προσθήκη διαδρομής
+                route_x.extend([depot.x, dest.x, depot.x])
+                route_y.extend([depot.y, dest.y, depot.y])
+            
+            # Σχεδιασμός της ολοκληρωμένης διαδρομής
+            self.ax.plot(
+                route_x, route_y,
+                color = color, linewidth = 3, alpha = 0.8, 
+                label = f'Drone {drone_id}', zorder = 3
+            )
+            
+            # Προσθήκη βελών για την κατεύθυνση της διαδρομής
+            for i in range(0, len(route_x) - 1):
+                if (i + 1) < len(route_x):
+                    mid_x = (route_x[i] + route_x[i+1]) / 2
+                    mid_y = (route_y[i] + route_y[i+1]) / 2
+                    dx    = route_x[i+1] - route_x[i]
+                    dy    = route_y[i+1] - route_y[i]
+                    
+                    # Αποφυγή υπερβολικών βελών σε μικρές αποστάσεις
+                    if (dx * dx + dy * dy) > 20:
+                        self.ax.annotate(
+                            '', xy = (mid_x + dx*0.3, mid_y + dy*0.3), 
+                            xytext = (mid_x, mid_y),
+                            arrowprops = dict(
+                                arrowstyle = '->', color = color, 
+                                lw = 5, alpha = 0.9
+                            ), zorder = 4
+                        )
+        
+        # Ενημέρωση τίτλου και legend
+        self.ax.set_title(
+            'Drone Delivery Routes', fontsize = 14, fontweight = 'bold'
+        )
+        self.ax.legend(loc = 'upper left', framealpha = 0.9)
+        
+        # Δείξε το αποτέλεσμα
+        self.fig.canvas.draw()
+        print('-> Οι διαδρομές των δρόνων σχεδιάστηκαν με επιτυχία.')
+        plt.show()
+
+        return;
+
 
 
 class _Trajectory:
@@ -574,6 +655,9 @@ def main():
     )
     
     animator.run()
+
+    print(' ') # Για καλύτερη εμφάνιση
+    animator.draw_final_routes()
 
     return;
 
