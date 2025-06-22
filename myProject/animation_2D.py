@@ -602,7 +602,7 @@ def _interpolate(
     if dist < 1e-6: # Πολύ μικρή απόσταση
         return [];
     
-    n_steps  = max(1, math.ceil(dist / (speed * dt)))
+    n_steps   = max(1, math.ceil(dist / (speed * dt)))
     step_size = dist / n_steps
     direction = vec / dist
     
@@ -621,7 +621,7 @@ def main():
     available_maps = [
         'map_background.png',
         'sh_map_by_jam6i_full.jpg',
-        'map_raccoon_city.png' # FIX IT!
+        'raccoon-city_map.jpg'
     ]
 
     # --- Επιλογή σεναρίου ---

@@ -105,7 +105,35 @@ def silent_hill_scenario():
     return (drones, depots, dests);
 
 def raccoon_city_scenario():
-    pass;
+    drones = [
+        Drone(0,  48.5, -42.6, 100, 300, 60),
+        Drone(1, -37.8, 109.4, 120, 350, 70),
+        Drone(2,     0,   -45, 150, 400, 80)
+    ]
+
+    depots = [Depot(0, 0, -45, 'RPD', Supply(200, 150, 100))]
+
+    dests = [
+        Destination(
+            0,  -6.0,   120, 'R.C. Hospital', Supply(40, 30, 20), priority = Priority.HIGH
+        ),
+        Destination(
+            1,  -5.6,  -100,    "Jack's Bar", Supply(30, 20, 10), priority = Priority.MEDIUM
+        ),
+        Destination(
+            2, -81.6, -71.6,   'Sport Stad.', Supply(60, 50, 40), priority = Priority.LOW
+        ),
+        Destination(
+            3, 100.0,   -20,  'R.C. E Elem.', Supply(30, 20, 10), priority = Priority.MEDIUM
+        ),
+        Destination(
+            4, -76.0,  10.8,     'West Park', Supply(20, 10,  5), priority = Priority.HIGH
+        ),
+    ]
+
+    print_scenario_info(drones, depots, dests)
+
+    return (drones, depots, dests);
 
 # --- Helpers ---
 def print_scenario_info(drones: list[Drone],
