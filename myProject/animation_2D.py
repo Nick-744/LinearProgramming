@@ -11,10 +11,17 @@ import math
 import os
 
 from models import Drone, Depot, Destination, Supply
-from scenario import sample_scenario, big_city_scenario
+from scenario import (
+    big_city_scenario, silent_hill_scenario, raccoon_city_scenario
+)
 from lp_solver import solve
 
 base_dir = os.path.dirname(__file__)
+
+# --- Global μεταβλητές εμφάνισης ---
+WINDOW_SIZE     = (14, 7)
+LABELS_FONTSIZE = 10 # Μέγεθος γραμματοσειράς των labels στον χάρτη
+TABLE_FONTSIZE  = 12 # Μέγεθος γραμματοσειράς των πινάκων πληροφοριών
 
 class DroneAnimator:
     ''' Ανεξάρτητη κλάση για την οπτικοποίηση της παράδοσης
@@ -116,7 +123,7 @@ class DroneAnimator:
 
     def _setup_figure(self) -> None:
         ''' Setup του matplotlib figure. '''
-        self.fig = plt.figure(figsize = (16, 10), constrained_layout = True)
+        self.fig = plt.figure(figsize = WINDOW_SIZE, constrained_layout = True)
         
         # Grid Layout - 3 γραμμές, 4 στήλες - Καλύτερη οργάνωση
         gs = self.fig.add_gridspec(3, 4, hspace = 0.3, wspace = 0.3)
@@ -164,14 +171,12 @@ class DroneAnimator:
                         min(all_x) - margin, max(all_x) + margin,
                         min(all_y) - margin, max(all_y) + margin
                     ],
-                    origin = 'lower',
+                    origin = 'upper',
                     alpha  = 0.7,
                     zorder = 0 # Βάλε το χάρτη πίσω από όλα τα άλλα στοιχεία!
                 )
             except Exception as e:
                 print(f'Δεν ήταν δυνατή η φόρτωση του χάρτη: {e}');
-        
-        temp_fs = 10
 
         # Σημεία εφοδιασμού
         if self.depots:
@@ -185,7 +190,7 @@ class DroneAnimator:
                 self.ax.annotate(
                     depot.name, (depot.x, depot.y), 
                     xytext = (5, 5), textcoords = 'offset points',
-                    fontsize = temp_fs, fontweight = 'bold', color = 'navy'
+                    fontsize = LABELS_FONTSIZE, fontweight = 'bold', color = 'navy'
                 )
         
         # Σημεία ανάγκης X [αρχικά όλα κόκκινα]
@@ -200,7 +205,7 @@ class DroneAnimator:
                 self.ax.annotate(
                     dest.name, (dest.x, dest.y),
                     xytext = (5, -15), textcoords = 'offset points',
-                    fontsize = temp_fs, fontweight = 'bold', color = 'darkred'
+                    fontsize = LABELS_FONTSIZE, fontweight = 'bold', color = 'darkred'
                 )
         
         self.ax.legend(loc = 'upper left', framealpha = 0.9)
@@ -228,24 +233,26 @@ class DroneAnimator:
         return;
 
     def _setup_info_panels(self) -> None:
-        temp = 14
-
         # Αριστερός πίνακας - Πληροφορίες δρόνων & σημείων εφοδιασμού
         self.info_ax_left.set_title(
-            'Drones & Depots', color = 'white', fontsize = temp + 4, pad = 20
+            'Drones & Depots', color = 'white',
+            fontsize = TABLE_FONTSIZE + 4, pad = 20
         )
         self.left_text = self.info_ax_left.text(
             0.05, 0.95, '', transform = self.info_ax_left.transAxes,
-            va = 'top', ha = 'left', fontsize = temp, color = 'white', family = 'monospace'
+            va = 'top', ha = 'left', fontsize = TABLE_FONTSIZE,
+            color = 'white', family = 'monospace'
         )
         
         # Δεξιός πίνακας - Πληροφορίες σημείων ανάγκης
         self.info_ax_right.set_title(
-            'Destinations', color = 'white', fontsize = temp + 4, pad = 20
+            'Destinations', color = 'white',
+            fontsize = TABLE_FONTSIZE + 4, pad = 20
         )
         self.right_text = self.info_ax_right.text(
             0.05, 0.95, '', transform = self.info_ax_right.transAxes,
-            va = 'top', ha = 'left', fontsize = temp, color = 'white', family = 'monospace'
+            va = 'top', ha = 'left', fontsize = TABLE_FONTSIZE,
+            color = 'white', family = 'monospace'
         )
 
         return;
@@ -459,15 +466,15 @@ class DroneAnimator:
             init_func = self._init_animation, interval = 50, blit = True, repeat = False
         )
 
-        # Maximize window
-        try:
-            mng = plt.get_current_fig_manager()
-            mng.window.state('zoomed') # TkAgg -> Windows
-        except:
-            try:
-                mng.window.showMaximized() # Qt backends
-            except:
-                pass;
+        # Maximize window - Δεν δουλεύει σε όλα τα PC!!!
+        # try:
+        #     mng = plt.get_current_fig_manager()
+        #     mng.window.state('zoomed') # TkAgg -> Windows
+        # except:
+        #     try:
+        #         mng.window.showMaximized() # Qt backends
+        #     except:
+        #         pass;
         
         plt.show()
         
@@ -525,11 +532,44 @@ def _interpolate(
 
 
 def main():
-    my_scenario = big_city_scenario()
+    choices = {
+        1: big_city_scenario,
+        2: silent_hill_scenario,
+        3: raccoon_city_scenario
+    }
+    available_maps = [
+        'map_background.png',
+        'sh_map_by_jam6i_full.jpg',
+        'map_raccoon_city.png' # FIX IT!
+    ]
+
+    # --- Επιλογή σεναρίου ---
+    user_input = input(
+        'Επιλέξτε 1 από τα παρακάτω σενάρια:\n'
+        ' 1. Μεγάλη Πόλη\n'
+        ' 2. Silent Hill\n'
+        ' 3. Raccoon City\n'
+        f'Εισάγετε επιλογή ({", ".join(map(str, choices.keys()))}): '
+    )
+    print('') # Για καλύτερη εμφάνιση
+
+    try:
+        user_input = int(user_input)
+        if user_input not in choices.keys():
+            raise ValueError('Μη έγκυρη επιλογή!');
+    except ValueError as e:
+        print(f'[X] {e} - Χρησιμοποιείται το προεπιλεγμένο σενάριο.\n')
+        user_input = 1 # Προεπιλογή στο big_city_scenario
     
+    my_scenario = choices.get(user_input, big_city_scenario)()
+    my_map = os.path.join(
+        base_dir, 'maps', available_maps[user_input - 1]
+    )
+    
+    # --- Δημιουργία και εκτέλεση του animation ---
     animator = DroneAnimator(
         scenario = my_scenario,
-        map_path = os.path.join(base_dir, 'maps', 'map_background.png'),
+        map_path = my_map if os.path.exists(my_map) else None,
         dt       = 0.01
     )
     
