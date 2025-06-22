@@ -5,18 +5,18 @@ from typing import List
 import pulp
 
 # Global Μεταβλητές
-supply_types  = ['food', 'water', 'medicine']
+supply_types = ['food', 'water', 'medicine']
 
 # Συντελεστής βαρύτητας ανά προτεραιότητα – ΜΕΓΑΛΥΤΕΡΟ νούμερο = ΥΨΗΛΟΤΕΡΗ προτεραιότητα.
 # Δεν έχει καμία σχέση με τα .value του Enum (HIGH=1, MEDIUM=2, LOW=3).
-priority_w    = {Priority.HIGH: 3., Priority.MEDIUM: 2., Priority.LOW: 1.}
+priority_w = {Priority.HIGH: 3., Priority.MEDIUM: 2., Priority.LOW: 1.}
 
-BIG_M         = 10_000
-UNMET_PENALTY = 1_000
+BIG_M = 10_000
 
-def build_model(drones: List[Drone],
-                depots: List[Depot],
-                dests:  List[Destination]) -> tuple:
+def build_model(drones:        List[Drone],
+                depots:        List[Depot],
+                dests:         List[Destination],
+                UNMET_PENALTY: int = 1_000) -> tuple:
     ''' Δημιουργία/Ορισμός του μαθηματικού μοντέλου [MILP] για το πρόβλημα '''
     model = pulp.LpProblem('DroneDelivery', pulp.LpMinimize) # Πρόβλημα ελαχιστοποίησης
 
@@ -110,7 +110,7 @@ def solve(drones: List[Drone],
             sup  = Supply(**{s: int(round(x[d, i, j, s].value())) for s in supply_types})
             dist = depots[i].dist(dests[j])
 
-            # Όσο πιο σημαντικός ο προορισμός, τόσο χαμηλότερο το κόστος ανά μονάδα
+            # Όσο πιο σημαντικός ο προορισμός, τόσο ΥΨΗΛΟΤΕΡΟ το κόστος ανά μονάδα
             cost = dist * priority_w[dests[j].priority]
 
             # Δημιουργία της ανάθεσης
