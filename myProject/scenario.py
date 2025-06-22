@@ -63,20 +63,41 @@ def big_city_scenario():
 
 def silent_hill_scenario():
     drones = [
-        Drone(0, 10.0, 20.0, 100, 300, 50),
-        Drone(1, 15.0, 25.0, 120, 350, 60),
-        Drone(2, 20.0, 30.0, 110, 320, 55)
+        Drone(0, 68, -78,  50,  50, 50),
+        Drone(1, 68, -78, 100,  70, 60),
+        Drone(2, 83, -20, 140, 120, 70)
     ]
 
     depots = [
-        Depot(0, 10.0, 20.0, 'Depot #1', Supply(100, 80, 60)),
-        Depot(1, 15.0, 25.0, 'Depot #2', Supply(120, 90, 70))
+        Depot(0, 68, -78, 'Depot - Obs. Deck', Supply(100, 120, 80)),
+        Depot(1, 83, -20, 'Depot',             Supply(50, 30, 20))
     ]
 
     dests = [
-        Destination(0, 5.0, 15.0, 'Hospital', Supply(40, 30, 20), priority = Priority.HIGH  ),
-        Destination(1, 8.0, 18.0,   'School', Supply(30, 20, 10), priority = Priority.MEDIUM),
-        Destination(2, 7.5, 22.5,   'Clinic', Supply(25, 15, 10), priority = Priority.LOW   )
+        Destination(
+            0, 41.6, -46.6,    'Lakeview', Supply(50, 40,  20), priority = Priority.HIGH
+        ),
+        Destination(
+            1, 52.1, -26.9,     'Midwich', Supply(60, 50, 40), priority = Priority.HIGH
+        ),
+        Destination(
+            2, 42.5, -73.2,  'Brookhaven', Supply( 0, 60, 50), priority = Priority.HIGH
+        ),
+        Destination(
+            3, 80.2, -58.6, 'Overlook P.', Supply(10, 30, 20), priority = Priority.LOW
+        ),
+        Destination(
+            4, 95.0, -46.2,   'Town Hall', Supply(30, 20, 10), priority = Priority.HIGH
+        ),
+        Destination(
+            5, 67.5, -31.5, 'Old Town H.', Supply(20, 10,  5), priority = Priority.LOW
+        ),
+        Destination(
+            6, 88.3, -74.7, "St. Maria's", Supply(25, 15, 10), priority = Priority.HIGH
+        ),
+        Destination(
+            7, 38.0, -65.0,  'Historical', Supply(40, 30, 20), priority = Priority.MEDIUM
+        )
     ]
 
     print_scenario_info(drones, depots, dests)
