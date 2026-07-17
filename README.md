@@ -1,6 +1,6 @@
 # 🚁 POST-DISASTER SUPPLY DELIVERY BY DRONES USING LINEAR PROGRAMMING
 
-Project στο μάθημα: Γραμμική και Συνδυαστική Βελτιστοποίηση [EE916]
+[`myProject`](myProject/) στο μάθημα: Γραμμική και Συνδυαστική Βελτιστοποίηση [EE916]
 
 ## 🧭 Εισαγωγή
 
